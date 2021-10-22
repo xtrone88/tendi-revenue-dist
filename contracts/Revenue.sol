@@ -86,4 +86,6 @@ contract Revenue is Ownable {
     payable(msg.sender).transfer(amount);
     return true;
   }
+
+  receive() external payable {}
 }
