@@ -1802,4 +1802,6 @@ interface KILLAzInterface {
     function ownerOf(uint256 tokenId) external view returns (address owner);
     function balanceOf(address owner) external view returns (uint256 balance);
     function tokenOfOwnerByIndex(address owner, uint256 index) external view returns (uint256 tokenId);
+    function totalSupply() external view returns (uint256);
+    function getApproved(uint256 tokenId) external view returns (address operator);
 }

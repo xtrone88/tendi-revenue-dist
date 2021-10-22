@@ -6,9 +6,9 @@ import "./KILLAzInterface.sol";
 contract Revenue is Ownable {
 
   // 0x21850dcfe24874382b12d05c5b189f5a2acf0e5b
-  ERC721 private immutable KILLAz;
+  address private immutable KILLAz;
   // 0xe4d0e33021476ca05ab22c8bf992d3b013752b80
-  ERC721 private immutable LadyKILLAz;
+  address private immutable LadyKILLAz;
 
   address private immutable OpenSea;
 
@@ -20,8 +20,8 @@ contract Revenue is Ownable {
   mapping(address => uint256) private revenues;
 
   constructor(address _KILLAz, address _LadyKILLAz, address _OpenSea) {
-    KILLAz = ERC721(_KILLAz);
-    LadyKILLAz = ERC721(_LadyKILLAz);
+    KILLAz = _KILLAz;
+    LadyKILLAz = _LadyKILLAz;
     OpenSea = _OpenSea;
   }
 
@@ -46,26 +46,26 @@ contract Revenue is Ownable {
       usedFeMales[femaleIds[pairs]] = block.timestamp;
     }
     
-    uint256 share = pairs / pairsT * 100;
-    uint256 amount = address(this).balance / 100 * share;
+    uint256 share = pairs * 10000 / pairsT;
+    uint256 amount = address(this).balance * share / 10000;
     revenues[msg.sender] += amount;
     return (share, amount);
   }
 
-  function getPairsOf(ERC721 nft, address from) private view returns (uint256, uint256, uint256[] memory) {
-    uint256 balance = nft.balanceOf(from);
+  function getPairsOf(address nft, address from) private view returns (uint256, uint256, uint256[] memory) {
+    uint256 balance = KILLAzInterface(nft).balanceOf(from);
     require(balance > 0, "You don't have any token pairs");
 
     uint256[] memory tokenIds = new uint256[](balance);
     uint256 total = 0;
     uint256 index = 0;
 
-    for (uint256 tokenId = 1; tokenId < nft.totalSupply(); tokenId++) {
-      if (nft.getApproved(tokenId) == OpenSea) {
+    for (uint256 tokenId = 1; tokenId <= KILLAzInterface(nft).totalSupply(); tokenId++) {
+      if (KILLAzInterface(nft).getApproved(tokenId) == OpenSea) {
         continue;
       }
       total++;
-      if (nft.ownerOf(tokenId) == msg.sender) {
+      if (KILLAzInterface(nft).ownerOf(tokenId) == msg.sender) {
         if (nft == KILLAz && usedMales[tokenId] > startTime) {
           continue;
         }
