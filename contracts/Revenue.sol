@@ -10,8 +10,6 @@ contract Revenue is Ownable {
   // 0xe4d0e33021476ca05ab22c8bf992d3b013752b80
   address private immutable LadyKILLAz;
 
-  address private immutable OpenSea;
-
   uint256 private startTime;
   uint256 private endTime;
 
@@ -19,10 +17,9 @@ contract Revenue is Ownable {
   mapping(uint256 => uint256) private usedFeMales;
   mapping(address => uint256) private revenues;
 
-  constructor(address _KILLAz, address _LadyKILLAz, address _OpenSea) {
+  constructor(address _KILLAz, address _LadyKILLAz) {
     KILLAz = _KILLAz;
     LadyKILLAz = _LadyKILLAz;
-    OpenSea = _OpenSea;
   }
 
   function setPeriod(uint256 inSeconds) public onlyOwner {
@@ -57,27 +54,25 @@ contract Revenue is Ownable {
     require(balance > 0, "You don't have any token pairs");
 
     uint256[] memory tokenIds = new uint256[](balance);
-    uint256 total = 0;
-    uint256 index = 0;
+    uint256 total = KILLAzInterface(nft).totalSupply();
+    uint256 length = 0;
 
-    for (uint256 tokenId = 1; tokenId <= KILLAzInterface(nft).totalSupply(); tokenId++) {
-      if (KILLAzInterface(nft).getApproved(tokenId) == OpenSea) {
+    for (uint256 index = 0; index < balance; index++) {
+      uint256 tokenId = KILLAzInterface(nft).tokenOfOwnerByIndex(from, index);
+      if (KILLAzInterface(nft).getApproved(tokenId) != address(0)) {
         continue;
       }
-      total++;
-      if (KILLAzInterface(nft).ownerOf(tokenId) == msg.sender) {
-        if (nft == KILLAz && usedMales[tokenId] > startTime) {
-          continue;
-        }
-        if (nft == LadyKILLAz && usedFeMales[tokenId] > startTime) {
-          continue;
-        }
-        tokenIds[index] = tokenId;
-        index++;
+      if (nft == KILLAz && usedMales[tokenId] > startTime) {
+        continue;
       }
+      if (nft == LadyKILLAz && usedFeMales[tokenId] > startTime) {
+        continue;
+      }
+      tokenIds[length] = tokenId;
+      length++;
     }
 
-    return (total, index, tokenIds);
+    return (total, length, tokenIds);
   }
 
   function withrawShare(uint256 amount) public returns (bool) {
