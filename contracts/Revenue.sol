@@ -21,12 +21,15 @@ contract Revenue is Ownable {
         LadyKILLAz = _LadyKILLAz;
     }
 
-    function setPeriod(uint256 inSeconds) public onlyOwner {
+    event Claimed(uint256 share, uint256 amount);
+    event Withrawn(uint256 amount, uint256 balance);
+
+    function setStart(uint256 inSeconds) public onlyOwner {
         startTime = block.timestamp;
         endTime = block.timestamp + inSeconds;
     }
 
-    function claimShare() public returns (uint256, uint256) {
+    function claimShare() public {
         (uint256 malesT, uint256 males, uint256[] memory maleIds) = getPairsOf(
             KILLAz,
             msg.sender
@@ -42,21 +45,21 @@ contract Revenue is Ownable {
 
         uint256 pairsT = malesT > femalesT ? femalesT : malesT;
         uint256 pairs = males > females ? females : males;
-
+        uint256 share = (pairs * 10000000000) / pairsT;
+        uint256 amount = (address(this).balance * share) / 10000000000;
+        
         while (pairs > 0) {
             pairs--;
             usedMales[maleIds[pairs]] = block.timestamp;
             usedFeMales[femaleIds[pairs]] = block.timestamp;
         }
-
-        uint256 share = (pairs * 10000) / pairsT;
-        uint256 amount = (address(this).balance * share) / 10000;
         revenues[msg.sender] += amount;
-        return (share, amount);
+
+        emit Claimed(share, amount);
     }
 
     function getPairsOf(address nft, address from)
-        private
+        public
         view
         returns (
             uint256,
@@ -93,14 +96,19 @@ contract Revenue is Ownable {
         return (total, length, tokenIds);
     }
 
-    function withrawShare(uint256 amount) public returns (bool) {
+    function balanceOf(address from) public view returns (uint256) {
+        return revenues[from];
+    }
+
+    function withrawShare(uint256 amount) public {
         require(
-            address(this).balance > amount && revenues[msg.sender] > amount,
+            address(this).balance >= amount && revenues[msg.sender] >= amount,
             "Requested amount exceeds the balance"
         );
         revenues[msg.sender] -= amount;
         payable(msg.sender).transfer(amount);
-        return true;
+        
+        emit Withrawn(amount, revenues[msg.sender]);
     }
 
     receive() external payable {}

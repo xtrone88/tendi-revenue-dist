@@ -36,10 +36,10 @@ contract LadyKILLAz is ERC721, Ownable {
 
     function buy(uint256[] memory _tokenIds) public payable {
         require(isSaleActive, "Sale is not active");
-        require(
-            !isClaimTime(),
-            "The purchase of tokens will be possible after claim time"
-        );
+        // require(
+        //     !isClaimTime(),
+        //     "The purchase of tokens will be possible after claim time"
+        // );
         require(
             _tokenIds.length <= maxPerTx,
             "No more than 5 tokens per transaction"
