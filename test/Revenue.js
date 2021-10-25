@@ -20,6 +20,8 @@ describe("Revenue contract", function () {
     const Revenue = await ethers.getContractFactory("Revenue");
     revenue = await Revenue.deploy(killaz.address, ladyKillaz.address);
     await revenue.deployed();
+
+    revenue.setStart(3600 * 48);
   });
 
   it("Buy NFTs", async() => {
@@ -52,4 +54,11 @@ describe("Revenue contract", function () {
     console.log('Total Revenue', (await waffle.provider.getBalance(revenue.address)).toString());
   });
 
+  it("Test Re-claimShare", async() => {
+    const [owner, ...addrs] = await ethers.getSigners();
+
+    await revenue.connect(addrs[0]).claimShare();
+  });
+
 });
+
