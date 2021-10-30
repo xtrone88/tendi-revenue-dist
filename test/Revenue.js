@@ -29,9 +29,6 @@ describe("Revenue contract", function () {
       await killaz.connect(addrs[i]).mintKILLAz(3, {value: ethers.utils.parseEther("0.087")});
       await ladyKillaz.connect(addrs[i]).buy([i * 5, i * 5 + 1, i * 5 + 2, i * 5 + 3, i * 5 + 4], {value: ethers.utils.parseEther("0.29")});
     }
-
-    console.log(await revenue.getPairsOf(killaz.address, addrs[0].address));
-    console.log(await revenue.getPairsOf(ladyKillaz.address, addrs[0].address));
   });
 
   it("Test oracle", async() => {
@@ -41,7 +38,12 @@ describe("Revenue contract", function () {
     await revenue.updateListing(killaz.address, [1,2,3,4,5]);
     await revenue.updateListing(killaz.address, [12,14,15,16,24]);
 
-    await revenue.endUpdate(10, 0);
+    await revenue.updateListing(ladyKillaz.address, [31, 18, 41, 33, 19]);
+
+    await revenue.endUpdate(10, 5);
+
+    console.log(await revenue.getPairsOf(killaz.address, addrs[3].address));
+    console.log(await revenue.getPairsOf(ladyKillaz.address, addrs[3].address));
   })
 
   it("Test claimShare", async() => {
@@ -50,23 +52,24 @@ describe("Revenue contract", function () {
     await owner.sendTransaction({to: revenue.address, value: ethers.utils.parseEther("5")});
     console.log('Total Revenue', (await waffle.provider.getBalance(revenue.address)).toString());
 
-    await revenue.connect(addrs[0]).claimShare();
-    let result = await revenue.balanceOf(addrs[0].address);
+    const tester = addrs[3];
+    await revenue.connect(tester).claimShare();
+    let result = await revenue.balanceOf(tester.address);
     console.log('Claimed Revenue', result.toString());
 
-    await revenue.connect(addrs[0]).withrawShare(result);
+    await revenue.connect(tester).withrawShare(result);
 
-    result = await revenue.balanceOf(addrs[0].address);
+    result = await revenue.balanceOf(tester.address);
     console.log('After Withrawn', result.toString());
 
     console.log('Total Revenue', (await waffle.provider.getBalance(revenue.address)).toString());
   });
 
-  it("Test Re-claimShare", async() => {
-    const [owner, ...addrs] = await ethers.getSigners();
+  // it("Test Re-claimShare", async() => {
+  //   const [owner, ...addrs] = await ethers.getSigners();
 
-    await revenue.connect(addrs[0]).claimShare();
-  });
+  //   await revenue.connect(addrs[0]).claimShare();
+  // });
 
 });
 
