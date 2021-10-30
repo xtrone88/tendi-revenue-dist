@@ -31,13 +31,12 @@ contract KILLAz is ERC721, Ownable {
         _setBaseURI(baseURI);
     }
 
-    function reserveKILLAz() public onlyOwner {   
+    function reserveKILLAz() public onlyOwner {
         require(totalSupply() < 100);
         for (uint256 i = 0; i < 50; i++) {
             uint256 mintIndex = totalSupply();
             _safeMint(reserveAddress, mintIndex);
         }
-        
     }
 
      function mintKILLAz(uint256 numberOfTokens) public payable {

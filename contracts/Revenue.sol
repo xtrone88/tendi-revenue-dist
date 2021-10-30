@@ -4,19 +4,28 @@ pragma solidity ^0.8.4;
 import "./KILLAzInterface.sol";
 
 contract Revenue is Ownable {
+    // the account's address starting oracle service
+    address private immutable ORACLE;
     // 0x21850dcfe24874382b12d05c5b189f5a2acf0e5b
     address private immutable KILLAz;
     // 0xe4d0e33021476ca05ab22c8bf992d3b013752b80
     address private immutable LadyKILLAz;
 
-    uint256 private startTime;
-    uint256 private endTime;
+    uint256 private updateTime;
+    uint256 private totalPairs;
 
+    mapping(uint256 => uint256) private listedMales;
+    mapping(uint256 => uint256) private listedFeMales;
     mapping(uint256 => uint256) private usedMales;
     mapping(uint256 => uint256) private usedFeMales;
     mapping(address => uint256) private revenues;
 
-    constructor(address _KILLAz, address _LadyKILLAz) {
+    constructor(
+        address _ORACLE,
+        address _KILLAz,
+        address _LadyKILLAz
+    ) {
+        ORACLE = _ORACLE;
         KILLAz = _KILLAz;
         LadyKILLAz = _LadyKILLAz;
     }
@@ -24,43 +33,63 @@ contract Revenue is Ownable {
     event Claimed(uint256 share, uint256 amount);
     event Withrawn(uint256 amount, uint256 balance);
 
+    modifier onlyOracle() {
+        require(msg.sender == ORACLE, "You are not oracle provider");
+        _;
+    }
+
     /**
-     * Set the pre-determined period in seconds since right now when you are owner.
+     * Set starting update since right now when you are oracle provider.
      */
-    function setStart(uint256 inSeconds) public onlyOwner {
-        startTime = block.timestamp;
-        endTime = block.timestamp + inSeconds;
+    function startUpdate() public onlyOracle {
+        totalPairs = 0;
+        updateTime = block.timestamp;
+    }
+
+    /**
+     * End updating when you are oracle provider.
+     */
+    function endUpdate(uint256 total) public onlyOracle {
+        totalPairs = total;
+    }
+
+    /**
+     * Update the token's listing status for sale on OpenSea
+     */
+    function updateListing(address nft, uint256 tokenId) public onlyOracle {
+        if (nft == KILLAz) {
+            listedMales[tokenId] = block.timestamp;
+        } else if (nft == LadyKILLAz) {
+            listedFeMales[tokenId] = block.timestamp;
+        }
     }
 
     /**
      * Claim the share proportional to the total of supplied male and female tokens according to the restricted condition
      */
     function claimShare() public {
-        require(endTime >= block.timestamp, "Revenue period isn't started");
-
+        require(totalPairs > 0, "You can't claim while processing update");
         // get available male tokens
-        (uint256 malesT, uint256 males, uint256[] memory maleIds) = getPairsOf(
+        (uint256 males, uint256[] memory maleIds) = getPairsOf(
             KILLAz,
             msg.sender
         );
         require(males > 0, "You don't have any token pairs");
 
         // get available female tokens
-        (
-            uint256 femalesT,
-            uint256 females,
-            uint256[] memory femaleIds
-        ) = getPairsOf(LadyKILLAz, msg.sender);
+        (uint256 females, uint256[] memory femaleIds) = getPairsOf(
+            LadyKILLAz,
+            msg.sender
+        );
         require(females > 0, "You don't have any token pairs");
 
         // choose less value between male and female's count as pairs
-        uint256 pairsT = malesT > femalesT ? femalesT : malesT;
         uint256 pairs = males > females ? females : males;
 
         // calculate share and amount proportional to the total pairs
-        uint256 share = (pairs * 10000000000) / pairsT;
+        uint256 share = (pairs * 10000000000) / totalPairs;
         uint256 amount = (address(this).balance * share) / 10000000000;
-        
+
         // set the timestamp when NFT is used as a pair in this period
         while (pairs > 0) {
             pairs--;
@@ -75,17 +104,12 @@ contract Revenue is Ownable {
     function getPairsOf(address nft, address from)
         public
         view
-        returns (
-            uint256,
-            uint256,
-            uint256[] memory
-        )
+        returns (uint256, uint256[] memory)
     {
         uint256 balance = KILLAzInterface(nft).balanceOf(from);
         require(balance > 0, "You don't have any token pairs");
 
         uint256[] memory tokenIds = new uint256[](balance);
-        uint256 total = KILLAzInterface(nft).totalSupply();
         uint256 length = 0;
 
         while (balance > 0) {
@@ -94,22 +118,26 @@ contract Revenue is Ownable {
                 from,
                 balance
             );
-            // check if it is approved to other's
-            if (KILLAzInterface(nft).getApproved(tokenId) != address(0)) {
-                continue;
-            }
             // check if it is used in the past in this period
-            if (nft == KILLAz && usedMales[tokenId] > startTime) {
+            if (
+                nft == KILLAz &&
+                (listedMales[tokenId] >= updateTime ||
+                    usedMales[tokenId] >= updateTime)
+            ) {
                 continue;
             }
-            if (nft == LadyKILLAz && usedFeMales[tokenId] > startTime) {
+            if (
+                nft == LadyKILLAz &&
+                (listedFeMales[tokenId] >= updateTime ||
+                    usedFeMales[tokenId] > updateTime)
+            ) {
                 continue;
             }
             tokenIds[length] = tokenId;
             length++;
         }
 
-        return (total, length, tokenIds);
+        return (length, tokenIds);
     }
 
     /**
