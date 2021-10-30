@@ -58,11 +58,13 @@ contract Revenue is Ownable {
     /**
      * Update the token's listing status for sale on OpenSea
      */
-    function updateListing(address token, uint256 tokenId) public onlyOracle {
-        if (token == KILLAz) {
-            listedMales[tokenId] = block.timestamp;
-        } else if (token == LadyKILLAz) {
-            listedFeMales[tokenId] = block.timestamp;
+    function updateListing(address token, uint256[] memory tokenIds) public onlyOracle {
+        for (uint256 i = 0; i < tokenIds.length; i++) {
+            if (token == KILLAz) {
+                listedMales[tokenIds[i]] = block.timestamp;
+            } else if (token == LadyKILLAz) {
+                listedFeMales[tokenIds[i]] = block.timestamp;
+            }
         }
     }
 
@@ -120,7 +122,7 @@ contract Revenue is Ownable {
                 from,
                 balance
             );
-            // check if it is used in the past in this period
+            // check if it is listed or used in the past in this period
             if (
                 token == KILLAz &&
                 (listedMales[tokenId] >= updateTime ||
