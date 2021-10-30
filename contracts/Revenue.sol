@@ -49,17 +49,19 @@ contract Revenue is Ownable {
     /**
      * End updating when you are oracle provider.
      */
-    function endUpdate(uint256 total) public onlyOracle {
-        totalPairs = total;
+    function endUpdate(uint256 totalKillaz, uint256 totalLadyKillaz) public onlyOracle {
+        totalKillaz = KILLAzInterface(KILLAz).totalSupply() - totalKillaz;
+        totalLadyKillaz = KILLAzInterface(LadyKILLAz).totalSupply() - totalLadyKillaz;
+        totalPairs = totalKillaz > totalLadyKillaz ? totalLadyKillaz : totalKillaz;
     }
 
     /**
      * Update the token's listing status for sale on OpenSea
      */
-    function updateListing(address nft, uint256 tokenId) public onlyOracle {
-        if (nft == KILLAz) {
+    function updateListing(address token, uint256 tokenId) public onlyOracle {
+        if (token == KILLAz) {
             listedMales[tokenId] = block.timestamp;
-        } else if (nft == LadyKILLAz) {
+        } else if (token == LadyKILLAz) {
             listedFeMales[tokenId] = block.timestamp;
         }
     }
@@ -101,12 +103,12 @@ contract Revenue is Ownable {
         emit Claimed(share, amount);
     }
 
-    function getPairsOf(address nft, address from)
+    function getPairsOf(address token, address from)
         public
         view
         returns (uint256, uint256[] memory)
     {
-        uint256 balance = KILLAzInterface(nft).balanceOf(from);
+        uint256 balance = KILLAzInterface(token).balanceOf(from);
         require(balance > 0, "You don't have any token pairs");
 
         uint256[] memory tokenIds = new uint256[](balance);
@@ -114,20 +116,20 @@ contract Revenue is Ownable {
 
         while (balance > 0) {
             balance--;
-            uint256 tokenId = KILLAzInterface(nft).tokenOfOwnerByIndex(
+            uint256 tokenId = KILLAzInterface(token).tokenOfOwnerByIndex(
                 from,
                 balance
             );
             // check if it is used in the past in this period
             if (
-                nft == KILLAz &&
+                token == KILLAz &&
                 (listedMales[tokenId] >= updateTime ||
                     usedMales[tokenId] >= updateTime)
             ) {
                 continue;
             }
             if (
-                nft == LadyKILLAz &&
+                token == LadyKILLAz &&
                 (listedFeMales[tokenId] >= updateTime ||
                     usedFeMales[tokenId] > updateTime)
             ) {
