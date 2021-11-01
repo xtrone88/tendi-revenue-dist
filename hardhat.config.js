@@ -6,9 +6,13 @@ require("dotenv").config();
 module.exports = {
   solidity: "0.8.4",
   networks: {
+    mainnet: {
+      url: process.env.MAINNET_END_POINT,
+      accounts: [process.env.MAINNET_PRIVATE_KEY]
+    },
     rinkeby: {
-      url: process.env.DEPLOY_END_POINT,
-      accounts: [process.env.DEPLOY_PRIVATE_KEY]
+      url: process.env.RINKEBY_END_POINT,
+      accounts: [process.env.RINKEBY_PRIVATE_KEY]
     }
   }
 };
