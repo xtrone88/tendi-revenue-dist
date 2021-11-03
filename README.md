@@ -19,4 +19,4 @@ Please run this command.<br>
 > npx hardhat run scripts/deploy.js --network mainnet<br>
 
 Once deployed, you can see the Revenue contract's address on terminal.<br>
-*** Save the Revenue contract's address and use it when deploy tendi-revenue-oracle service. ***
+**Save the Revenue contract's address and use it when deploy tendi-revenue-oracle service.**
