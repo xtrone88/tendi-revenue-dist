@@ -4,7 +4,7 @@
 Download zip file or git clone https://github.com/zess11/tendi-revenue-dist.git<br>
 ### Install
 Go to the source directory and open terminal, please run this command.<br>
-> yarn install
+> npm install
 ### Compile
 > npx hardhat compile
 ### Config
