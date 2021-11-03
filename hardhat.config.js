@@ -1,4 +1,5 @@
 require("@nomiclabs/hardhat-waffle");
+require("@nomiclabs/hardhat-etherscan");
 require("dotenv").config();
 /**
  * @type import('hardhat/config').HardhatUserConfig
@@ -14,5 +15,8 @@ module.exports = {
       url: process.env.RINKEBY_END_POINT,
       accounts: [process.env.RINKEBY_PRIVATE_KEY]
     }
-  }
+  },
+  etherscan: {
+    apiKey: process.env.ETHERSCAN_API_KEY
+  },
 };
