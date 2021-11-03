@@ -8,7 +8,10 @@ Go to the source directory and open terminal, please run this command.<br>
 ### Compile
 > npx hardhat compile
 ### Config
-Rename .env.example to .env and open it, then fill the mainnet url and account's private key. for example<br>
+Rename .env.example to .env and open it, then fill the mainnet url and account's private key.<br>
+PRIVATE_KEY=Your mainnet account's private key<br>
+PROVIDER_URL=Your mainnet infra url<br>
+For example<br>
 ![image](https://user-images.githubusercontent.com/82226713/140091960-48f40dde-0207-4506-a7f3-fcda524f5eb9.png)
 As you can see, you just copy and past your mainnet's infra url and account's private key for deploying.<br>
 Open the scripts/deploy.js and fill the Oracle's owner address at line 8.<br>
