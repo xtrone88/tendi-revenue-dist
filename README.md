@@ -17,5 +17,6 @@ You can also set this same account when deploy tendi-revenue-oracle service.<br>
 ![image](https://user-images.githubusercontent.com/82226713/140093993-ce83ce5a-8c05-4fac-b9f1-c53bca8b8f43.png)
 Please run this command.<br>
 > npx hardhat run scripts/deploy.js --network mainnet<br>
+
 Once deployed, you can see the Revenue contract's address on terminal.<br>
 ***Save the Revenue contract's address and use it when deploy tendi-revenue-oracle service.
