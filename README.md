@@ -1,4 +1,5 @@
 # tendi-revenue-dist
+> Current project is based on nodejs 16.12 and yarn 1.22.17
 ### Install
 yarn install
 ### Compile
